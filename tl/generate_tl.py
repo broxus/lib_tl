@@ -353,7 +353,7 @@ def readAndGenerate(inputFiles, outputPath, scheme):
     else:
       typeid = countTypeId
 
-    typeid = '0x' + typeid
+    typeid = '0x' + typeid + 'u'
 
     params = nametype.group(3)
     restype = nametype.group(4)
@@ -1226,7 +1226,7 @@ class TypeCreator;\n\
 \n\
 ' + ('} // namespace ' + creatorNamespace + '\n\n' if creatorNamespace != '' else '') + '\
 // Type id constants\n\
-enum {\n\
+enum : std::uint32_t {\n\
 ' + ',\n'.join(enums) + '\n\
 };\n\
 \n\
