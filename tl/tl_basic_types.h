@@ -12,6 +12,9 @@
 
 #include <QtCore/QVector>
 
+#include "boost/multiprecision/cpp_int.hpp"
+namespace mp = boost::multiprecision;
+
 namespace tl {
 namespace details {
 
@@ -290,42 +293,93 @@ inline bool operator!=(const int128_type &a, const int128_type &b) {
 
 class int256_type {
 public:
-	int128_type l;
-	int128_type h;
+//	int128_type l;
+//	int128_type h;
+
+    int256 v;
 
 	int256_type() = default;
 
-	uint32 type() const {
+	[[nodiscard]] static uint32 type() {
 		return id_int256;
 	}
 	template <typename Prime>
 	[[nodiscard]] bool read(const Prime *&from, const Prime *end, uint32 cons = id_int256) {
-		if (cons != id_int256) {
-			return false;
-		}
-		return l.read(from, end) && h.read(from, end);
+//		if (cons != id_int256) {
+//			return false;
+//		}
+		return true;//l.read(from, end) && h.read(from, end);
 	}
 	template <typename Accumulator>
 	void write(Accumulator &to) const {
-		l.write(to);
-		h.write(to);
+//		l.write(to);
+//		h.write(to);
 	}
 
+//	int256 v() const{
+//	    return 0;
+//	}
+
 private:
-	explicit int256_type(int128_type low, int128_type high) : l(low), h(high) {
+	explicit int256_type(int128_type low, int128_type high) : v(0){ //l(low), h(high) {
 	}
 
 	friend int256_type make_int256(const int128_type &l, const int128_type &h);
+//	friend int256_type make_int256(const int256_type &n);
+    friend int256_type make_int256(const mp::int256_t &n);
 };
+
 inline int256_type make_int256(const int128_type &l, const int128_type &h) {
-	return int256_type(l, h);
+    return int256_type(l, h);
 }
 
+//inline int256_type make_int256(const int256 &n) {
+////    TODO serialization
+//    std::cout << __FILE__ << ": " << __FUNCTION__ << " line " << __LINE__ << " TODO serialization";
+//    return make_int256(make_int128(0,0), make_int128(0,0));
+//}
+
+QByteArray Uint256ToBytesBE(uint256 const& from) {
+
+    QByteArray to(32, 0x0);
+
+    auto copy_count = from.backend().size() * sizeof(mp::limb_type);
+
+    auto iter = (uint8_t*)from.backend().limbs();
+
+    for(int i = 0; i < copy_count; i++) {
+        to[31-i] = iter[i];
+    }
+
+    return to;
+}
+
+uint256 BytesBEToUint256(const QByteArray& from) {
+    if (from.length() != 32) {
+        throw std::runtime_error("Array len is not 32");
+    }
+
+    mp::uint256_t to = 0;
+    uint32_t size = 32 / sizeof(mp::limb_type);
+    to.backend().resize(size, size);
+
+    auto iter = (uint8_t*)to.backend().limbs();
+
+    for(int i = 0; i < 32; i++) {
+        iter[i] = from[31-i];
+    }
+
+    to.backend().normalize();
+
+    return to;
+}
+
+
 inline bool operator==(const int256_type &a, const int256_type &b) {
-	return a.l == b.l && a.h == b.h;
+	return true;//a.l == b.l && a.h == b.h;
 }
 inline bool operator!=(const int256_type &a, const int256_type &b) {
-	return a.l != b.l || a.h != b.h;
+	return true;//a.l != b.l || a.h != b.h;
 }
 
 class double_type {
