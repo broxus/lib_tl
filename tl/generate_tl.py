@@ -292,7 +292,23 @@ def readAndGenerate(inputFiles, outputPath, scheme):
   lines, layer, names = readInputs(inputFiles)
   inputNames = '\'' + '\', \''.join(names) + '\''
 
+  nametypeRegex = re.compile(r'([a-zA-Z.0-9_]+)(#[0-9a-f]+)?([^=]*)=\s*([a-zA-Z.<>0-9_]+);', re.MULTILINE)
+  preparedLines = list()
+  processingNametype = False
   for line in lines:
+    if line.startswith('//') or line.startswith('---') or re.match(r'^\s*$', line) or line.strip() in skipLines:
+      processingNametype = False
+      if not processingNametype:
+        preparedLines.append(line)
+    else:
+      if processingNametype:
+        preparedLines[-1] += ' ' + line.strip()
+      else:
+        preparedLines.append(line.strip())
+      processingNametype = line.strip().count(';') == 0
+
+  for line in preparedLines:
+
     nocomment = re.match(r'^(.*?)//', line)
     if (nocomment):
       line = nocomment.group(1)
@@ -307,7 +323,7 @@ def readAndGenerate(inputFiles, outputPath, scheme):
     if line.strip() in skipLines:
       continue
 
-    nametype = re.match(r'([a-zA-Z\.0-9_]+)(#[0-9a-f]+)?([^=]*)=\s*([a-zA-Z\.<>0-9_]+);', line)
+    nametype = re.match(nametypeRegex, line)
     if (not nametype):
       print('Bad line found: ' + line)
       sys.exit(1)
