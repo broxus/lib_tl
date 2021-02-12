@@ -17,51 +17,48 @@ struct Writer;
 
 template <typename bare>
 class boxed : public bare {
-public:
-	using bare::bare;
+ public:
+  using bare::bare;
 
-	boxed() = default;
-	boxed(const boxed<bare> &v) = default;
-	boxed<bare> &operator=(const boxed<bare> &v) = default;
-	boxed(const bare &v) : bare(v) {
-	}
-	boxed<bare> &operator=(const bare &v) {
-		*((bare*)this) = v;
-		return *this;
-	}
+  boxed() = default;
+  boxed(const boxed<bare> &v) = default;
+  boxed<bare> &operator=(const boxed<bare> &v) = default;
+  boxed(const bare &v) : bare(v) {
+  }
+  boxed<bare> &operator=(const bare &v) {
+    *((bare *)this) = v;
+    return *this;
+  }
 
-	template <typename Prime>
-	[[nodiscard]] bool read(const Prime *&from, const Prime *end, uint32 cons = 0) {
-		if (!Reader<Prime>::Has(1, from, end)) {
-			return false;
-		}
-		cons = Reader<Prime>::Get(from, end);
-		return bare::read(from, end, cons);
-	}
-	template <typename Accumulator>
-	void write(Accumulator &to) const {
-		Writer<Accumulator>::Put(to, bare::type());
-		bare::write(to);
-	}
+  template <typename Prime>
+  [[nodiscard]] bool read(const Prime *&from, const Prime *end, uint32 cons = 0) {
+    if (!Reader<Prime>::Has(1, from, end)) {
+      return false;
+    }
+    cons = Reader<Prime>::Get(from, end);
+    return bare::read(from, end, cons);
+  }
+  template <typename Accumulator>
+  void write(Accumulator &to) const {
+    Writer<Accumulator>::Put(to, bare::type());
+    bare::write(to);
+  }
 
-	using Unboxed = bare;
-
+  using Unboxed = bare;
 };
 
 template <typename T>
-class boxed<boxed<T> > {
-	using Unboxed = typename T::CantMakeBoxedBoxedType;
+class boxed<boxed<T>> {
+  using Unboxed = typename T::CantMakeBoxedBoxedType;
 };
 
 template <typename T>
-struct is_boxed : std::false_type {
-};
+struct is_boxed : std::false_type {};
 
 template <typename T>
-struct is_boxed<boxed<T>> : std::true_type {
-};
+struct is_boxed<boxed<T>> : std::true_type {};
 
 template <typename T>
 inline constexpr bool is_boxed_v = is_boxed<T>::value;
 
-} // namespace tl
+}  // namespace tl

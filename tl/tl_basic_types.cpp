@@ -9,7 +9,7 @@
 namespace tl {
 
 QString utf16(const QByteArray &v) {
-	return QString::fromUtf8(v);
+  return QString::fromUtf8(v);
 }
 
-} // namespace tl
+}  // namespace tl
